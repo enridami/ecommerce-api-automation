@@ -78,5 +78,61 @@ def test_create_product(api_client):
 def test_update_product(api_client):
     """Valida la actualización parcial o total de un producto existente (PUT)."""
     url = f"{BASE_URL}/api/v1/products"
-
     
+    unique_suffix = uuid.uuid4().hex[:6]
+    create_payload = {
+        "title": f"Producto Temporario {unique_suffix}",
+        "price": 15,
+        "description": "Descripción temporal para pruebas de update.",
+        "categoryId": 1,
+        "images": ["https://i.imgur.com/ZANVnHE.jpeg"]
+    }
+    
+    create_response = api_client.post(url, json=create_payload)
+    assert create_response.status_code == 201
+    product_id = create_response.json()["id"]
+
+    update_url = f"{BASE_URL}/api/v1/products/{product_id}"
+    update_payload = {
+        "title": f"Nuevo nombre de ropa actualizado {unique_suffix}",
+        "price": 20,
+        "description": "Descripción actualizada correctamente.",
+        "categoryId": 1,
+        "images": ["https://i.imgur.com/ZANVnHE.jpeg"]
+    }
+
+    response = api_client.put(update_url, json=update_payload)
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert data["title"] == update_payload["title"]
+    
+    print(f"\n[PUT] Producto {product_id} actualizado a: {data['title']}")
+
+
+def test_delete_product(api_client):
+    """Valida la eliminación de un producto (DELETE)."""
+    url = f"{BASE_URL}/api/v1/products"
+    unique_suffix = uuid.uuid4().hex[:6]
+    create_payload = {
+        "title": f"Producto Temporario {unique_suffix}",
+        "price": 15,
+        "description": "Descripción temporal para pruebas de update.",
+        "categoryId": 1,
+        "images": ["https://i.imgur.com/ZANVnHE.jpeg"]
+    }
+    
+    create_response = api_client.post(url, json=create_payload)
+    assert create_response.status_code == 201
+
+    product_id = create_response.json()["id"]
+    url = f"{BASE_URL}/api/v1/products/{product_id}"
+    
+    response = api_client.delete(url)
+    
+    # La API de Platzi responde con 200 y un booleano (true) al eliminar exitosamente
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert data is True or data == {"status": True}
+    print(f"\n[DELETE] Producto con ID {product_id} eliminado correctamente.")
